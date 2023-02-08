@@ -1,6 +1,7 @@
 package com.example.rabbitmq.rabbitmqspring.controller;
 
 import com.example.rabbitmq.rabbitmqspring.model.Article;
+import com.example.rabbitmq.rabbitmqspring.model.PublishArticleRequest;
 import com.example.rabbitmq.rabbitmqspring.model.RegistryServerConnectionRequest;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -29,19 +30,30 @@ public class Server2 {
 
     public static int SERVER2_MAX_CLIENTS=5;
 
-    public List<Integer> server2_clients=new ArrayList<>();
+    public static List<Integer> server2_clients=new ArrayList<>();
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
     @Autowired
-    @Qualifier("exchange2")
-    private DirectExchange exchange2;
+    @Qualifier("exchangeB")
+    private DirectExchange exchangeB;
 
     @PostMapping("/server2/post-article")
     public String send(@RequestBody Article article){
-        rabbitTemplate.convertAndSend(exchange2.getName(), "producer2.key",article);
+        rabbitTemplate.convertAndSend(exchangeB.getName(), "routing.key",article);
         return "Message sent to queue.";
+    }
+
+    @PostMapping("/server2/post-article/v2")
+    public String sendArticle(@RequestBody PublishArticleRequest publishArticleRequest){
+        System.out.println("Publish Article Request from Client : "+publishArticleRequest.getClient_id());
+        if(server2_clients.contains(publishArticleRequest.getClient_id())) {
+            rabbitTemplate.convertAndSend(exchangeB.getName(), "routing.key", publishArticleRequest.getArticle());
+            return "SUCCESS. Message sent to queue.";
+        }else{
+            return "FAILED. This client is not subscirbed to this server.";
+        }
     }
 
     @PostMapping("/server2/join-server")
@@ -81,8 +93,8 @@ public class Server2 {
                     HttpHeaders headers = new HttpHeaders();
                     headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
                     RegistryServerConnectionRequest registryServerConnectionRequest = new RegistryServerConnectionRequest();
-                    registryServerConnectionRequest.setServer_name("producer2");
-                    registryServerConnectionRequest.setRouting_key("producer2.key");
+                    registryServerConnectionRequest.setServer_name("queueC");
+                    registryServerConnectionRequest.setRouting_key("routing.key");
                     HttpEntity<RegistryServerConnectionRequest> entity = new HttpEntity<>(registryServerConnectionRequest, headers);
                     System.out.println(new RestTemplate().exchange(
                             "http://localhost:8080/registry-server/connect", HttpMethod.POST, entity, String.class).getBody());
@@ -112,7 +124,7 @@ public class Server2 {
                     }
 
                     String urlappend=new String();
-                    if(server.equals("producer1"))
+                    if(server.equals("queueA")||server.equals("queueB"))
                         urlappend="server1";
 
                     for(int i=0;i<articles.size();i++){

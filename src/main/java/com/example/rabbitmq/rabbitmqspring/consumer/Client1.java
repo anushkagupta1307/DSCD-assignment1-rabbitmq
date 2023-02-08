@@ -1,6 +1,6 @@
 package com.example.rabbitmq.rabbitmqspring.consumer;
-
 import com.example.rabbitmq.rabbitmqspring.model.Article;
+import com.example.rabbitmq.rabbitmqspring.model.PublishArticleRequest;
 import com.example.rabbitmq.rabbitmqspring.model.RegistryServerConnectionRequest;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -18,7 +18,9 @@ import java.util.List;
 import java.util.Scanner;
 
 @Component
-public class Consumer1 {
+public class Client1 {
+
+    public static List<String> serversList=new ArrayList<>();
 
     public static void main(String[] args) {
 
@@ -55,14 +57,15 @@ public class Consumer1 {
                     headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
                     int client_id_join = 1;
                     HttpEntity<Integer> entity = new HttpEntity<>(client_id_join, headers);
-                    if(server_name_join.equals("producer1")){
+                    if(server_name_join.equals("queueA")){
                     System.out.println(new RestTemplate().exchange(
                             "http://localhost:8080/server1/join-server", HttpMethod.POST, entity, String.class).getBody());
                     }
-                    else if(server_name_join.equals("producer2")){
+                    else if(server_name_join.equals("queueC")){
                         System.out.println(new RestTemplate().exchange(
-                                "http://localhost:8080/server1/join-server", HttpMethod.POST, entity, String.class).getBody());
+                                "http://localhost:8080/server2/join-server", HttpMethod.POST, entity, String.class).getBody());
                     }
+                    serversList.add(server_name_join);
                     break;
                 case 3:
                     System.out.println("Enter Server name to Leave : ");
@@ -73,14 +76,15 @@ public class Consumer1 {
                     headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
                     int client_id_leave = 1;
                     HttpEntity<Integer> entity1 = new HttpEntity<>(client_id_leave, headers1);
-                    if(server_name_leave.equals("producer1")) {
+                    if(server_name_leave.equals("queueA")) {
                         System.out.println(new RestTemplate().exchange("http://localhost:8080/server1/leave-server",
                                 HttpMethod.POST, entity1, String.class).getBody());
                     }
-                    else if(server_name_leave.equals("producer2")){
+                    else if(server_name_leave.equals("queueC")){
                         System.out.println(new RestTemplate().exchange("http://localhost:8080/server2/leave-server",
                                 HttpMethod.POST, entity1, String.class).getBody());
                     }
+                    serversList.remove(server_name_leave);
                     break;
                 case 4:
                     System.out.println("Enter Server name to Get Articles : ");
@@ -93,30 +97,34 @@ public class Consumer1 {
                     String date_get= sc.next();
                     System.out.println("Enter Name of Author : (Enter NA if you do not wish to specify)");
                     String author_get=sc.next();
-                    CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
-                    connectionFactory.setUsername("guest");
-                    connectionFactory.setPassword("guest");
-                    MessageConverter messageConverter = new Jackson2JsonMessageConverter();
-                    RabbitTemplate rabbit = new RabbitTemplate(connectionFactory);
-                    rabbit.setMessageConverter(messageConverter);
-                    List<Article> articles = new ArrayList<>();
-                    if(new RabbitAdmin(rabbit).getQueueInfo(server_name_getarticle).getMessageCount() ==0){
-                        System.out.println("No New Messages on Server yet. ");
-                    }else {
-                        while (new RabbitAdmin(rabbit).getQueueInfo(server_name_getarticle).getMessageCount() != 0) {
-                            Article article = processArticle(rabbit, server_name_getarticle);
-                            if (article != null && article.getArticle_data() != null) {
-                                articles.add(article);
+                    if(serversList.contains(server_name_getarticle)){
+                        CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
+                        connectionFactory.setUsername("guest");
+                        connectionFactory.setPassword("guest");
+                        MessageConverter messageConverter = new Jackson2JsonMessageConverter();
+                        RabbitTemplate rabbit = new RabbitTemplate(connectionFactory);
+                        rabbit.setMessageConverter(messageConverter);
+                        List<Article> articles = new ArrayList<>();
+                        if (new RabbitAdmin(rabbit).getQueueInfo(server_name_getarticle).getMessageCount() == 0) {
+                            System.out.println("No New Messages on Server yet. ");
+                        } else {
+                            while (new RabbitAdmin(rabbit).getQueueInfo(server_name_getarticle).getMessageCount() != 0) {
+                                Article article = processArticle(rabbit, server_name_getarticle);
+                                if (article != null && article.getArticle_data() != null) {
+                                    articles.add(article);
+                                }
                             }
                         }
-                    }
-                    List<Article> filteredArticles=Article.filterArticles(articles, type_get,date_get,author_get);
-                    for (int i = 0; i < filteredArticles.size(); i++) {
-                        System.out.println("TYPE : " + filteredArticles.get(i).getType());
-                        System.out.println("Publishing Date : " + filteredArticles.get(i).getDate());
-                        System.out.println("Author : " + filteredArticles.get(i).getAuthor());
-                        System.out.println("Article : " + filteredArticles.get(i).getArticle_data());
-                        System.out.println();
+                        List<Article> filteredArticles = Article.filterArticles(articles, type_get, date_get, author_get);
+                        for (int i = 0; i < filteredArticles.size(); i++) {
+                            System.out.println("TYPE : " + filteredArticles.get(i).getType());
+                            System.out.println("Publishing Date : " + filteredArticles.get(i).getDate());
+                            System.out.println("Author : " + filteredArticles.get(i).getAuthor());
+                            System.out.println("Article : " + filteredArticles.get(i).getArticle_data());
+                            System.out.println();
+                        }
+                    }else{
+                        System.out.println("Cannot get articles from server to which you are not subscribed.");
                     }
                     break;
                 case 5:
@@ -134,20 +142,23 @@ public class Consumer1 {
                     System.out.println("Enter Article : ");
                     String article_data = sc.nextLine();
                     HttpHeaders headers2 = new HttpHeaders();
+                    PublishArticleRequest publishArticleRequest=new PublishArticleRequest();
                     Article article = new Article();
                     article.setType(type);
                     article.setDate(date);
                     article.setArticle_data(article_data);
                     article.setAuthor(author);
+                    publishArticleRequest.setArticle(article);
+                    publishArticleRequest.setClient_id(1);
                     headers2.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-                    HttpEntity<Article> entity2 = new HttpEntity<>(article, headers2);
-                    if(server_publish.equals("producer1")) {
+                    HttpEntity<PublishArticleRequest> entity2 = new HttpEntity<>(publishArticleRequest, headers2);
+                    if(server_publish.equals("queueA")) {
                         System.out.println(new RestTemplate().exchange(
-                                "http://localhost:8080/server1/post-article", HttpMethod.POST, entity2, String.class).getBody());
+                                "http://localhost:8080/server1/post-article/v2", HttpMethod.POST, entity2, String.class).getBody());
                     }
-                    else if(server_publish.equals("producer2")){
+                    else if(server_publish.equals("queueC")){
                         System.out.println(new RestTemplate().exchange(
-                                "http://localhost:8080/server2/post-article", HttpMethod.POST, entity2, String.class).getBody());
+                                "http://localhost:8080/server2/post-article/v2", HttpMethod.POST, entity2, String.class).getBody());
                     }
                     break;
                 case 6 :

@@ -13,34 +13,55 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class RabbitMQConfiguration {
 
-    @Bean(name="producer1")
-    Queue producer1Queue(){
-        return new Queue("producer1",false);
+    @Bean(name="queueA")
+    Queue producer1Queue1(){
+        return new Queue("queueA",false);
     }
 
-    @Bean(name="producer2")
-    Queue producer2Queue(){
-        return new Queue("producer2",false);
+    @Bean(name="queueB")
+    Queue producer1Queue2(){
+        return new Queue("queueB",false);
     }
 
-    @Bean(name="exchange1")
+
+    @Bean(name="queueC")
+    Queue producer2Queue1(){
+        return new Queue("queueC",false);
+    }
+
+    @Bean(name="queueD")
+    Queue producer2Queue2(){
+        return new Queue("queueD",false);
+    }
+
+    @Bean(name="exchangeA")
     DirectExchange directExchange1(){
-        return new DirectExchange("exchange1");
+        return new DirectExchange("exchangeA");
     }
 
-    @Bean(name="exchange2")
+    @Bean(name="exchangeB")
     DirectExchange directExchange2(){
-        return new DirectExchange("exchange2");
+        return new DirectExchange("exchangeB");
     }
 
     @Bean
-    Binding bindingProducer1Queue(Queue producer1, DirectExchange exchange1){
-        return BindingBuilder.bind(producer1).to(exchange1).with("producer1.key");
+    Binding bindingQueueA(Queue queueA, DirectExchange exchangeA){
+        return BindingBuilder.bind(queueA).to(exchangeA).with("routing.key");
     }
 
     @Bean
-    Binding bindingProducer2Queue(Queue producer2, DirectExchange exchange2){
-        return BindingBuilder.bind(producer2).to(exchange2).with("producer2.key");
+    Binding bindingQueueB(Queue queueB, DirectExchange exchangeA){
+        return BindingBuilder.bind(queueB).to(exchangeA).with("routing.key");
+    }
+
+    @Bean
+    Binding bindingQueueC(Queue queueC, DirectExchange exchangeB){
+        return BindingBuilder.bind(queueC).to(exchangeB).with("routing.key");
+    }
+
+    @Bean
+    Binding bindingQueueD(Queue queueD, DirectExchange exchangeB){
+        return BindingBuilder.bind(queueD).to(exchangeB).with("routing.key");
     }
 
     @Bean

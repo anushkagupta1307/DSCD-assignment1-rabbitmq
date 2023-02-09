@@ -12,7 +12,7 @@ import java.util.List;
 @RestController
 public class RegistryServer {
 
-    public static int MAX_SERVERS=5;
+    public static int MAX_SERVERS=3;
     public static List<RegistryServerConnectionRequest> allServers=new ArrayList<>();
 
    @GetMapping("/registry-server/list-of-servers")
@@ -22,7 +22,7 @@ public class RegistryServer {
 
    @PostMapping("/registry-server/connect")
    public static String connectToRegistryServer(@RequestBody RegistryServerConnectionRequest registryServerConnectionRequest){
-        if(allServers.size()<=MAX_SERVERS){
+        if(allServers.size()<MAX_SERVERS){
             allServers.add(registryServerConnectionRequest);
             return "Connected to Registry Server "+registryServerConnectionRequest.getServer_name()+" "+registryServerConnectionRequest.getRouting_key();
         }else{

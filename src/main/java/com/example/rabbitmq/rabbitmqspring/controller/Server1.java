@@ -29,7 +29,7 @@ import java.util.Scanner;
 @RestController
 public class Server1 {
 
-    public static int MAX_CLIENTS = 5;
+    public static int MAX_CLIENTS = 2;
 
     public static List<Integer> clients = new ArrayList<>();
 
@@ -60,7 +60,7 @@ public class Server1 {
     @PostMapping("/server1/join-server")
     public String joinServer(@RequestBody int client_id) {
         System.out.println("Join Request from Client : " + client_id);
-        if (clients.size() <= MAX_CLIENTS) {
+        if (clients.size() < MAX_CLIENTS) {
             clients.add(client_id);
             return "SUCCESS. ADDED CLIENT " + client_id;
         } else {
@@ -125,7 +125,7 @@ public class Server1 {
                     }
 
                     String urlappend=new String();
-                    if(server.equals("queueC")||server.equals("queueD"))
+                    if(server.equals("queueD")||server.equals("queueE") || server.equals("queueF"))
                         urlappend="server2";
 
                     for(int i=0;i<articles.size();i++){

@@ -25,14 +25,25 @@ public class RabbitMQConfiguration {
 
 
     @Bean(name="queueC")
-    Queue producer2Queue1(){
+    Queue producer1Queue3(){
         return new Queue("queueC",false);
     }
 
     @Bean(name="queueD")
-    Queue producer2Queue2(){
+    Queue producer2Queue1(){
         return new Queue("queueD",false);
     }
+
+    @Bean(name="queueE")
+    Queue producer2Queue2(){
+        return new Queue("queueE",false);
+    }
+
+    @Bean(name="queueF")
+    Queue producer2Queue3(){
+        return new Queue("queueF",false);
+    }
+
 
     @Bean(name="exchangeA")
     DirectExchange directExchange1(){
@@ -55,13 +66,23 @@ public class RabbitMQConfiguration {
     }
 
     @Bean
-    Binding bindingQueueC(Queue queueC, DirectExchange exchangeB){
-        return BindingBuilder.bind(queueC).to(exchangeB).with("routing.key");
+    Binding bindingQueueC(Queue queueC, DirectExchange exchangeA){
+        return BindingBuilder.bind(queueC).to(exchangeA).with("routing.key");
     }
 
     @Bean
     Binding bindingQueueD(Queue queueD, DirectExchange exchangeB){
         return BindingBuilder.bind(queueD).to(exchangeB).with("routing.key");
+    }
+
+    @Bean
+    Binding bindingQueueE(Queue queueE, DirectExchange exchangeB){
+        return BindingBuilder.bind(queueE).to(exchangeB).with("routing.key");
+    }
+
+    @Bean
+    Binding bindingQueueF(Queue queueF, DirectExchange exchangeB){
+        return BindingBuilder.bind(queueF).to(exchangeB).with("routing.key");
     }
 
     @Bean

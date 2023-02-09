@@ -45,10 +45,15 @@ public class Client2 {
                     for(int i=0;i<listOfServers.size();i++){
                         if(listOfServers.get(i).getServer_name().equals("queueA"))
                             listOfServers.get(i).setServer_name("queueB");
-                        if(listOfServers.get(i).getServer_name().equals("queueC"))
-                            listOfServers.get(i).setServer_name("queueD");
+                        if(listOfServers.get(i).getServer_name().equals("queueD"))
+                            listOfServers.get(i).setServer_name("queueE");
                     }
                     for (int i = 0; i < listOfServers.size(); i++) {
+                        if(listOfServers.get(i).getServer_name().equals("queueB")){
+                            System.out.print("Server 1 : ");
+                        }else if(listOfServers.get(i).getServer_name().equals("queueE")){
+                            System.out.print("Server 2 : ");
+                        }
                         System.out.println(listOfServers.get(i).getServer_name() + " " + listOfServers.get(i).getRouting_key());
                         System.out.println();
                     }
@@ -66,7 +71,7 @@ public class Client2 {
                         System.out.println(new RestTemplate().exchange(
                                 "http://localhost:8080/server1/join-server", HttpMethod.POST, entity, String.class).getBody());
                     }
-                    else if(server_name_join.equals("queueD")){
+                    else if(server_name_join.equals("queueE")){
                         System.out.println(new RestTemplate().exchange(
                                 "http://localhost:8080/server2/join-server", HttpMethod.POST, entity, String.class).getBody());
                     }
@@ -85,7 +90,7 @@ public class Client2 {
                         System.out.println(new RestTemplate().exchange("http://localhost:8080/server1/leave-server",
                                 HttpMethod.POST, entity1, String.class).getBody());
                     }
-                    else if(server_name_leave.equals("queueD")){
+                    else if(server_name_leave.equals("queueE")){
                         System.out.println(new RestTemplate().exchange("http://localhost:8080/server2/leave-server",
                                 HttpMethod.POST, entity1, String.class).getBody());
                     }
@@ -161,7 +166,7 @@ public class Client2 {
                         System.out.println(new RestTemplate().exchange(
                                 "http://localhost:8080/server1/post-article/v2", HttpMethod.POST, entity2, String.class).getBody());
                     }
-                    else if(server_publish.equals("queueD")){
+                    else if(server_publish.equals("queueE")){
                         System.out.println(new RestTemplate().exchange(
                                 "http://localhost:8080/server2/post-article/v2", HttpMethod.POST, entity2, String.class).getBody());
                     }

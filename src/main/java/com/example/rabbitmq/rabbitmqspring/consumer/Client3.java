@@ -1,4 +1,5 @@
 package com.example.rabbitmq.rabbitmqspring.consumer;
+
 import com.example.rabbitmq.rabbitmqspring.model.Article;
 import com.example.rabbitmq.rabbitmqspring.model.PublishArticleRequest;
 import com.example.rabbitmq.rabbitmqspring.model.RegistryServerConnectionRequest;
@@ -18,22 +19,21 @@ import java.util.List;
 import java.util.Scanner;
 
 @Component
-public class Client1 {
+public class Client3 {
 
-    public static List<String> serversList=new ArrayList<>();
+    public static List<String> client3_serversList=new ArrayList<>();
 
     public static void main(String[] args) {
-
         int n=0;
         while (n != 6) {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Press 1 to get List of Servers : ");
-        System.out.println("Press 2 to Join a Server : ");
-        System.out.println("Press 3 to Leave a Server : ");
-        System.out.println("Press 4 to Get Articles : ");
-        System.out.println("Press 5 to Publish Article to Server : ");
-        System.out.println("Press 6 to Exit ");
-        n = sc.nextInt();
+            Scanner sc = new Scanner(System.in);
+            System.out.println("Press 1 to get List of Servers : ");
+            System.out.println("Press 2 to Join a Server : ");
+            System.out.println("Press 3 to Leave a Server : ");
+            System.out.println("Press 4 to Get Articles : ");
+            System.out.println("Press 5 to Publish Article to Server : ");
+            System.out.println("Press 6 to Exit ");
+            n = sc.nextInt();
 
             switch (n) {
                 case 1:
@@ -43,10 +43,16 @@ public class Client1 {
                             HttpMethod.GET, null, new ParameterizedTypeReference<List<RegistryServerConnectionRequest>>() {
                             });
                     List<RegistryServerConnectionRequest> listOfServers = response.getBody();
+                    for(int i=0;i<listOfServers.size();i++){
+                        if(listOfServers.get(i).getServer_name().equals("queueA"))
+                            listOfServers.get(i).setServer_name("queueC");
+                        if(listOfServers.get(i).getServer_name().equals("queueD"))
+                            listOfServers.get(i).setServer_name("queueF");
+                    }
                     for (int i = 0; i < listOfServers.size(); i++) {
-                        if(listOfServers.get(i).getServer_name().equals("queueA")){
+                        if(listOfServers.get(i).getServer_name().equals("queueC")){
                             System.out.print("Server 1 : ");
-                        }else if(listOfServers.get(i).getServer_name().equals("queueD")){
+                        }else if(listOfServers.get(i).getServer_name().equals("queueF")){
                             System.out.print("Server 2 : ");
                         }
                         System.out.println(listOfServers.get(i).getServer_name() + " " + listOfServers.get(i).getRouting_key());
@@ -60,17 +66,17 @@ public class Client1 {
                     String routing_key_join = sc.next();
                     HttpHeaders headers = new HttpHeaders();
                     headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-                    int client_id_join = 1;
+                    int client_id_join = 3;
                     HttpEntity<Integer> entity = new HttpEntity<>(client_id_join, headers);
-                    if(server_name_join.equals("queueA")){
-                    System.out.println(new RestTemplate().exchange(
-                            "http://localhost:8080/server1/join-server", HttpMethod.POST, entity, String.class).getBody());
+                    if(server_name_join.equals("queueC")){
+                        System.out.println(new RestTemplate().exchange(
+                                "http://localhost:8080/server1/join-server", HttpMethod.POST, entity, String.class).getBody());
                     }
-                    else if(server_name_join.equals("queueD")){
+                    else if(server_name_join.equals("queueF")){
                         System.out.println(new RestTemplate().exchange(
                                 "http://localhost:8080/server2/join-server", HttpMethod.POST, entity, String.class).getBody());
                     }
-                    serversList.add(server_name_join);
+                    client3_serversList.add(server_name_join);
                     break;
                 case 3:
                     System.out.println("Enter Server name to Leave : ");
@@ -79,17 +85,17 @@ public class Client1 {
                     String routing_key_leave = sc.next();
                     HttpHeaders headers1 = new HttpHeaders();
                     headers1.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-                    int client_id_leave = 1;
+                    int client_id_leave = 3;
                     HttpEntity<Integer> entity1 = new HttpEntity<>(client_id_leave, headers1);
-                    if(server_name_leave.equals("queueA")) {
+                    if(server_name_leave.equals("queueC")) {
                         System.out.println(new RestTemplate().exchange("http://localhost:8080/server1/leave-server",
                                 HttpMethod.POST, entity1, String.class).getBody());
                     }
-                    else if(server_name_leave.equals("queueD")){
+                    else if(server_name_leave.equals("queueF")){
                         System.out.println(new RestTemplate().exchange("http://localhost:8080/server2/leave-server",
                                 HttpMethod.POST, entity1, String.class).getBody());
                     }
-                    serversList.remove(server_name_leave);
+                    client3_serversList.remove(server_name_leave);
                     break;
                 case 4:
                     System.out.println("Enter Server name to Get Articles : ");
@@ -102,7 +108,7 @@ public class Client1 {
                     String date_get= sc.next();
                     System.out.println("Enter Name of Author : (Enter NA if you do not wish to specify)");
                     String author_get=sc.next();
-                    if(serversList.contains(server_name_getarticle)){
+                    if(client3_serversList.contains(server_name_getarticle)){
                         CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
                         connectionFactory.setUsername("guest");
                         connectionFactory.setPassword("guest");
@@ -121,7 +127,6 @@ public class Client1 {
                             }
                         }
                         List<Article> filteredArticles = Article.filterArticles(articles, type_get, date_get, author_get);
-                       // articles.removeAll(filteredArticles);
                         for (int i = 0; i < filteredArticles.size(); i++) {
                             System.out.println("TYPE : " + filteredArticles.get(i).getType());
                             System.out.println("Publishing Date : " + filteredArticles.get(i).getDate());
@@ -129,14 +134,6 @@ public class Client1 {
                             System.out.println("Article : " + filteredArticles.get(i).getArticle_data());
                             System.out.println();
                         }
-
-                       /* for(int i=0;i<articles.size();i++){
-                            HttpHeaders headers2 = new HttpHeaders();
-                            headers2.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-                            HttpEntity<Article> entity2 = new HttpEntity<>(articles.get(i), headers2);
-                            System.out.println(new RestTemplate().exchange(
-                                    "http://localhost:8080/server2/post-article", HttpMethod.POST, entity2, String.class).getBody());
-                        } */
                     }else{
                         System.out.println("Cannot get articles from server to which you are not subscribed.");
                     }
@@ -163,14 +160,14 @@ public class Client1 {
                     article.setArticle_data(article_data);
                     article.setAuthor(author);
                     publishArticleRequest.setArticle(article);
-                    publishArticleRequest.setClient_id(1);
+                    publishArticleRequest.setClient_id(3);
                     headers2.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
                     HttpEntity<PublishArticleRequest> entity2 = new HttpEntity<>(publishArticleRequest, headers2);
-                    if(server_publish.equals("queueA")) {
+                    if(server_publish.equals("queueC")) {
                         System.out.println(new RestTemplate().exchange(
                                 "http://localhost:8080/server1/post-article/v2", HttpMethod.POST, entity2, String.class).getBody());
                     }
-                    else if(server_publish.equals("queueD")){
+                    else if(server_publish.equals("queueF")){
                         System.out.println(new RestTemplate().exchange(
                                 "http://localhost:8080/server2/post-article/v2", HttpMethod.POST, entity2, String.class).getBody());
                     }
@@ -182,7 +179,6 @@ public class Client1 {
 
         }
     }
-
     public static Article processArticle(RabbitTemplate rabbit, String server_name_getarticle){
         try {
             Article message = (Article) rabbit.receiveAndConvert(server_name_getarticle);
@@ -190,8 +186,10 @@ public class Client1 {
         }
         catch (Exception e){
             e.printStackTrace();
-                System.out.println("Exception caught in process Article method");
-                return new Article();
+            System.out.println("Exception caught in process Article method");
+            return new Article();
         }
     }
+
+
 }

@@ -28,7 +28,7 @@ import java.util.Scanner;
 @RestController
 public class Server2 {
 
-    public static int SERVER2_MAX_CLIENTS=5;
+    public static int SERVER2_MAX_CLIENTS=2;
 
     public static List<Integer> server2_clients=new ArrayList<>();
 
@@ -52,13 +52,13 @@ public class Server2 {
             rabbitTemplate.convertAndSend(exchangeB.getName(), "routing.key", publishArticleRequest.getArticle());
             return "SUCCESS. Message sent to queue.";
         }else{
-            return "FAILED. This client is not subscirbed to this server.";
+            return "FAILED. This client is not subscribed to this server.";
         }
     }
 
     @PostMapping("/server2/join-server")
     public String joinServer(@RequestBody int client_id){
-        if(server2_clients.size()<=SERVER2_MAX_CLIENTS){
+        if(server2_clients.size()<SERVER2_MAX_CLIENTS){
             server2_clients.add(client_id);
             return "SUCCESS. ADDED CLIENT "+client_id;
         }
@@ -93,7 +93,7 @@ public class Server2 {
                     HttpHeaders headers = new HttpHeaders();
                     headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
                     RegistryServerConnectionRequest registryServerConnectionRequest = new RegistryServerConnectionRequest();
-                    registryServerConnectionRequest.setServer_name("queueC");
+                    registryServerConnectionRequest.setServer_name("queueD");
                     registryServerConnectionRequest.setRouting_key("routing.key");
                     HttpEntity<RegistryServerConnectionRequest> entity = new HttpEntity<>(registryServerConnectionRequest, headers);
                     System.out.println(new RestTemplate().exchange(
@@ -124,7 +124,7 @@ public class Server2 {
                     }
 
                     String urlappend=new String();
-                    if(server.equals("queueA")||server.equals("queueB"))
+                    if(server.equals("queueA")||server.equals("queueB") || server.equals("queueC"))
                         urlappend="server1";
 
                     for(int i=0;i<articles.size();i++){

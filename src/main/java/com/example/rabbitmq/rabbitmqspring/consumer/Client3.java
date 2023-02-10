@@ -1,6 +1,7 @@
 package com.example.rabbitmq.rabbitmqspring.consumer;
 
 import com.example.rabbitmq.rabbitmqspring.model.Article;
+import com.example.rabbitmq.rabbitmqspring.model.PublishArticle;
 import com.example.rabbitmq.rabbitmqspring.model.PublishArticleRequest;
 import com.example.rabbitmq.rabbitmqspring.model.RegistryServerConnectionRequest;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -44,10 +45,14 @@ public class Client3 {
                             });
                     List<RegistryServerConnectionRequest> listOfServers = response.getBody();
                     for(int i=0;i<listOfServers.size();i++){
-                        if(listOfServers.get(i).getServer_name().equals("queueA"))
+                        if(listOfServers.get(i).getServer_name().equals("queueA")) {
                             listOfServers.get(i).setServer_name("queueC");
-                        if(listOfServers.get(i).getServer_name().equals("queueD"))
+                            listOfServers.get(i).setRouting_key("routing.C");
+                        }
+                        if(listOfServers.get(i).getServer_name().equals("queueD")) {
                             listOfServers.get(i).setServer_name("queueF");
+                            listOfServers.get(i).setRouting_key("routing.F");
+                        }
                     }
                     for (int i = 0; i < listOfServers.size(); i++) {
                         if(listOfServers.get(i).getServer_name().equals("queueC")){
@@ -127,12 +132,29 @@ public class Client3 {
                             }
                         }
                         List<Article> filteredArticles = Article.filterArticles(articles, type_get, date_get, author_get);
+                        articles.removeAll(filteredArticles);
                         for (int i = 0; i < filteredArticles.size(); i++) {
                             System.out.println("TYPE : " + filteredArticles.get(i).getType());
                             System.out.println("Publishing Date : " + filteredArticles.get(i).getDate());
                             System.out.println("Author : " + filteredArticles.get(i).getAuthor());
                             System.out.println("Article : " + filteredArticles.get(i).getArticle_data());
                             System.out.println();
+                        }
+                        String urlappend=new String();
+                        if(server_name_getarticle.equals("queueC"))
+                            urlappend="server1";
+                        else if(server_name_getarticle.equals("queueF"))
+                            urlappend="server2";
+
+                        for(int i=0;i<articles.size();i++){
+                            PublishArticle publishArticle=new PublishArticle();
+                            publishArticle.setArticle(articles.get(i));
+                            publishArticle.setRouting_key(routing_key_getarticle);
+                            HttpHeaders headers2 = new HttpHeaders();
+                            headers2.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+                            HttpEntity<PublishArticle> entity2 = new HttpEntity<>(publishArticle, headers2);
+                            new RestTemplate().exchange(
+                                    "http://localhost:8080/"+urlappend+"/post-article", HttpMethod.POST, entity2, String.class).getBody();
                         }
                     }else{
                         System.out.println("Cannot get articles from server to which you are not subscribed.");
@@ -161,15 +183,52 @@ public class Client3 {
                     article.setAuthor(author);
                     publishArticleRequest.setArticle(article);
                     publishArticleRequest.setClient_id(3);
+                    publishArticleRequest.setRouting_key(routing_key_publish);
                     headers2.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
                     HttpEntity<PublishArticleRequest> entity2 = new HttpEntity<>(publishArticleRequest, headers2);
                     if(server_publish.equals("queueC")) {
                         System.out.println(new RestTemplate().exchange(
                                 "http://localhost:8080/server1/post-article/v2", HttpMethod.POST, entity2, String.class).getBody());
+
+                        PublishArticle p1=new PublishArticle();
+                        p1.setArticle(article);
+                        p1.setRouting_key("routing.A");
+                        HttpHeaders headers3 = new HttpHeaders();
+                        headers3.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+                        HttpEntity<PublishArticle> entity3 = new HttpEntity<>(p1, headers3);
+                        new RestTemplate().exchange(
+                                "http://localhost:8080/server1/post-article", HttpMethod.POST, entity3, String.class).getBody();
+
+                        PublishArticle p2=new PublishArticle();
+                        p2.setArticle(article);
+                        p2.setRouting_key("routing.B");
+                        HttpHeaders headers4 = new HttpHeaders();
+                        headers4.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+                        HttpEntity<PublishArticle> entity4 = new HttpEntity<>(p2, headers4);
+                        new RestTemplate().exchange(
+                                "http://localhost:8080/server1/post-article", HttpMethod.POST, entity4, String.class).getBody();
                     }
                     else if(server_publish.equals("queueF")){
                         System.out.println(new RestTemplate().exchange(
                                 "http://localhost:8080/server2/post-article/v2", HttpMethod.POST, entity2, String.class).getBody());
+
+                        PublishArticle p3=new PublishArticle();
+                        p3.setArticle(article);
+                        p3.setRouting_key("routing.D");
+                        HttpHeaders headers5 = new HttpHeaders();
+                        headers5.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+                        HttpEntity<PublishArticle> entity5 = new HttpEntity<>(p3, headers5);
+                        new RestTemplate().exchange(
+                                "http://localhost:8080/server2/post-article", HttpMethod.POST, entity5, String.class).getBody();
+
+                        PublishArticle p4=new PublishArticle();
+                        p4.setArticle(article);
+                        p4.setRouting_key("routing.E");
+                        HttpHeaders headers6 = new HttpHeaders();
+                        headers6.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+                        HttpEntity<PublishArticle> entity6 = new HttpEntity<>(p4, headers6);
+                        new RestTemplate().exchange(
+                                "http://localhost:8080/server2/post-article", HttpMethod.POST, entity6, String.class).getBody();
                     }
                     break;
                 case 6 :

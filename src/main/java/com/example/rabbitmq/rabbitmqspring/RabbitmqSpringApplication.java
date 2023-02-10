@@ -8,8 +8,8 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 public class RabbitmqSpringApplication {
 
-	//Server 1 has 2 queues- Queue A for client 1 and Queue B for client 2
-	//Server 2 has 2 queues - Queue C for client 1 and Queue D for client 2
+	//Server 1 has 3 queues- queueA-client 1 , queueB-client 2 , queueC-client 3
+	//Server 2 has 3 queues- queueD-client 1 , queueE-client 2 , queueF-client 3
 
 	public static void main(String[] args) {
 		SpringApplication.run(RabbitmqSpringApplication.class, args);

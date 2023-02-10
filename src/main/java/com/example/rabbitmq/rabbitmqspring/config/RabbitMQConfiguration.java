@@ -57,32 +57,32 @@ public class RabbitMQConfiguration {
 
     @Bean
     Binding bindingQueueA(Queue queueA, DirectExchange exchangeA){
-        return BindingBuilder.bind(queueA).to(exchangeA).with("routing.key");
+        return BindingBuilder.bind(queueA).to(exchangeA).with("routing.A");
     }
 
     @Bean
     Binding bindingQueueB(Queue queueB, DirectExchange exchangeA){
-        return BindingBuilder.bind(queueB).to(exchangeA).with("routing.key");
+        return BindingBuilder.bind(queueB).to(exchangeA).with("routing.B");
     }
 
     @Bean
     Binding bindingQueueC(Queue queueC, DirectExchange exchangeA){
-        return BindingBuilder.bind(queueC).to(exchangeA).with("routing.key");
+        return BindingBuilder.bind(queueC).to(exchangeA).with("routing.C");
     }
 
     @Bean
     Binding bindingQueueD(Queue queueD, DirectExchange exchangeB){
-        return BindingBuilder.bind(queueD).to(exchangeB).with("routing.key");
+        return BindingBuilder.bind(queueD).to(exchangeB).with("routing.D");
     }
 
     @Bean
     Binding bindingQueueE(Queue queueE, DirectExchange exchangeB){
-        return BindingBuilder.bind(queueE).to(exchangeB).with("routing.key");
+        return BindingBuilder.bind(queueE).to(exchangeB).with("routing.E");
     }
 
     @Bean
     Binding bindingQueueF(Queue queueF, DirectExchange exchangeB){
-        return BindingBuilder.bind(queueF).to(exchangeB).with("routing.key");
+        return BindingBuilder.bind(queueF).to(exchangeB).with("routing.F");
     }
 
     @Bean
